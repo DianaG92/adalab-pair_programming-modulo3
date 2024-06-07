@@ -3,8 +3,10 @@
 # NOTA Este ejercicio debe realizarse en un archivo .py
 # En este caso trabajas en una empresa de venta al por menor de productos italianos y debes realizar la limpieza, transformación e integración de datos de ventas, productos y clientes para su análisis.
 # Los pasos que deberás seguir en este ejercicio son:
+
 # 1. Lectura de la Información:
     # Leer los archivos CSV (ventas.csv, productos.csv, clientes.csv).
+    
 #%%
 import pandas as pd
 import numpy as np
@@ -82,20 +84,63 @@ exploracion_dataframe(df_clientes)
 # 2. Transformación de Datos:
     # Limpiar los datos: manejar valores nulos, eliminar duplicados si los hay, corregir errores tipográficos, etc.
 
-# df_ventas:
-# fecha (pasar de object a date)
-# df_productos:
-# categoria es float
-# precio (pasar de object a float)
-# origen es object
-
+#%%
+def limpieza (df_ventas,df_productos,df_clientes):
+    print("LIMPIEZA DE CLIENTES:")
+    df_clientes[["email", "gender", "Address"]] = df_clientes[["email", "gender", "Address"]].fillna("unknown")
+    df_clientes["City"] = df_clientes["City"].fillna("Madrid")
+    df_clientes["Country"]= df_clientes["Country"].fillna("Spain")
+    df_clientes['full_name'] = df_clientes['first_name'] + ' ' + df_clientes['last_name']
+    df_clientes["City"] = df_clientes["City"].apply(lambda x : x.replace("," , "") if isinstance(x , str) else x)
+    df_clientes["Address"] = df_clientes["Address"].apply(lambda x : x.replace("," , "") if isinstance(x , str) else x)
+    df_productos['ID_Producto'] = df_productos['ID']
+    df_clientes['id'] = df_ventas['ID_Cliente']
+    
+    return df_ventas, df_productos, df_clientes
 
     # Realizar la integración de datos: unir los conjuntos de datos apropiados para obtener una tabla única que contenga información de ventas junto con detalles de productos y clientes.
 
+#%%
+def union_dataframe(df_ventas, df_productos, df_clientes):
 
-
+    df_ventas_productos = pd.merge(df_ventas, df_productos, on='ID_Producto', how='left')
+    tabla_unica = pd.merge(df_ventas_productos, df_clientes, on='id', how='left')
+   
+    return tabla_unica
 
     # Aplicar transformaciones relevantes según sea necesario: por ejemplo, convertir tipos de datos, renombrar columnas, crear nuevas características derivadas, etc.
 
+#%%
+def transformacion(tabla_unica):
 
+    tabla_unica = tabla_unica.drop(columns=['first_name', 'last_name', 'ID', "id"])
+    
+    columnas_ordenadas = ['ID_Cliente', 'full_name', 'email', 'gender', 'City', 
+                          'Country', 'Address', 'ID_Producto', 'Nombre_Producto', 
+                          'Categoría', 'Origen', 'Descripción', 'Fecha_Venta', 
+                          'Cantidad', 'Precio', 'Total']
+    tabla_final = tabla_unica[columnas_ordenadas]
+
+    mapeo_columnas = {
+        'ID_Cliente': 'ID Cliente',
+        'full_name': 'Nombre completo',
+        'email': 'Correo electrónico',
+        'gender': 'Género',
+        'City': 'Ciudad',
+        'Country': 'País',
+        'Address': 'Dirección',
+        'ID_Producto': 'ID Producto',
+        'Nombre_Producto': 'Nombre del producto',
+        'Categoría': 'Categoría',
+        'Origen': 'Origen',
+        'Descripción': 'Descripción',
+        'Fecha_Venta': 'Fecha de venta',
+        'Cantidad': 'Cantidad',
+        'Precio': 'Precio',
+        'Total': 'Total'
+    }
+    
+    tabla_final = tabla_final.rename(columns=mapeo_columnas)
+    
+    return tabla_final
 # %%
